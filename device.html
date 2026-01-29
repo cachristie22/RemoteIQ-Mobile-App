@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#0a0f1a">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>RemoteIQ - Device</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+
+<body>
+    <div class="page">
+        <div class="container">
+            <header class="header">
+                <a href="dashboard.html" class="back-btn">
+                    ← Back
+                </a>
+                <button id="refreshBtn" class="btn btn-icon" title="Refresh">
+                    🔄
+                </button>
+            </header>
+
+            <main>
+                <!-- Device Header -->
+                <div class="device-header">
+                    <h2 id="deviceName">Loading...</h2>
+                    <div id="deviceEsn" class="esn"></div>
+                    <div id="connectionBadge" class="connection-badge">
+                        <span class="device-status"></span>
+                        Loading...
+                    </div>
+                </div>
+
+                <!-- Engine Section -->
+                <section class="metrics-section fade-in">
+                    <h3 class="section-title">⚙️ Engine</h3>
+                    <div class="metrics-grid">
+                        <div class="metric-card">
+                            <div class="metric-label">Speed</div>
+                            <div class="metric-value" id="engineSpeed">--</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-label">Hours</div>
+                            <div class="metric-value" id="engineHours">--</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-label">Temperature</div>
+                            <div class="metric-value" id="engineTemp">--</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-label">Oil Pressure</div>
+                            <div class="metric-value" id="oilPressure">--</div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Power Section -->
+                <section class="metrics-section fade-in" style="animation-delay: 0.1s;">
+                    <h3 class="section-title">🔋 Power & Fuel</h3>
+                    <div class="metrics-grid">
+                        <div class="metric-card">
+                            <div class="metric-label">Battery</div>
+                            <div class="metric-value" id="batteryVoltage">--</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-label">Fuel Level</div>
+                            <div class="metric-value" id="fuelLevel">--</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-label">Fuel Rate</div>
+                            <div class="metric-value" id="fuelRate">--</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-label">Total Fuel</div>
+                            <div class="metric-value" id="totalFuel">--</div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Status Section -->
+                <section class="metrics-section fade-in" style="animation-delay: 0.2s;">
+                    <h3 class="section-title">📍 Status</h3>
+                    <div class="metrics-grid">
+                        <div class="metric-card full-width">
+                            <div class="metric-label">Location</div>
+                            <div class="metric-value" id="location" style="font-size: 1rem;">--</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-label">Cell Signal</div>
+                            <div class="metric-value" id="cellSignal" style="font-size: 1rem;">--</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-label">Last Update</div>
+                            <div class="metric-value" id="lastUpdate" style="font-size: 0.75rem;">--</div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Spacer for bottom padding -->
+                <div style="height: 40px;"></div>
+            </main>
+        </div>
+    </div>
+
+    <script src="js/api.js"></script>
+    <script src="js/app.js"></script>
+</body>
+
+</html>
