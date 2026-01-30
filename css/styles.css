@@ -102,6 +102,14 @@ a:hover {
     width: auto;
 }
 
+.sub-branding {
+    display: block;
+    font-size: 0.65rem;
+    font-weight: 400;
+    color: var(--text-muted);
+    margin-top: 2px;
+}
+
 .header-actions {
     display: flex;
     gap: 8px;
