@@ -170,7 +170,8 @@ const App = {
         card.addEventListener('click', () => {
             // Store device data and navigate
             sessionStorage.setItem('selectedDevice', JSON.stringify(device));
-            window.location.href = 'device.html';
+            const brandParam = window.Branding ? Branding.getBrandParam() : '';
+            window.location.href = 'device.html' + brandParam;
         });
 
         return card;

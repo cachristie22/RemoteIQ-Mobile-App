@@ -6,6 +6,7 @@
 const BRANDS = {
     // Default RemoteIQ branding
     remoteiq: {
+        id: 'remoteiq',
         name: 'RemoteIQ',
         logo: 'https://files.onlosant.com/6254b63150e14fb6deb3aa31/navbar-logo.svg',
         subBranding: null,
@@ -13,6 +14,7 @@ const BRANDS = {
     },
     // Sage Pump / Sage Rental Services
     sage: {
+        id: 'sage',
         name: 'Sage Pump',
         logo: 'https://sagerentalservices.com/wp-content/uploads/2021/08/logo.png',
         subBranding: 'powered by RemoteIQ',
@@ -21,20 +23,38 @@ const BRANDS = {
 };
 
 /**
- * Detect which brand to use based on URL
+ * Detect which brand to use based on URL or stored preference
  */
 function detectBrand() {
     const hostname = window.location.hostname.toLowerCase();
     const pathname = window.location.pathname.toLowerCase();
     const search = window.location.search.toLowerCase();
 
-    // Check for sage in URL
+    // Check URL for brand parameter or hostname
     if (hostname.includes('sage') || pathname.includes('sage') || search.includes('brand=sage')) {
+        sessionStorage.setItem('brandId', 'sage');
         return BRANDS.sage;
+    }
+
+    // Check sessionStorage for previously set brand
+    const storedBrand = sessionStorage.getItem('brandId');
+    if (storedBrand && BRANDS[storedBrand]) {
+        return BRANDS[storedBrand];
     }
 
     // Default to RemoteIQ
     return BRANDS.remoteiq;
+}
+
+/**
+ * Get brand query param if needed
+ */
+function getBrandParam() {
+    const storedBrand = sessionStorage.getItem('brandId');
+    if (storedBrand && storedBrand !== 'remoteiq') {
+        return `?brand=${storedBrand}`;
+    }
+    return '';
 }
 
 /**
@@ -52,23 +72,16 @@ function applyBranding() {
     // Update page title
     document.title = document.title.replace('RemoteIQ', brand.name);
 
-    // Add or update sub-branding
-    const existingSubBrand = document.querySelector('.sub-branding');
-    if (brand.subBranding) {
-        if (existingSubBrand) {
-            existingSubBrand.textContent = brand.subBranding;
-        } else {
-            // Add sub-branding after logo in header
-            const header = document.querySelector('.header h1');
-            if (header) {
-                const subBrand = document.createElement('span');
-                subBrand.className = 'sub-branding';
-                subBrand.textContent = brand.subBranding;
-                header.appendChild(subBrand);
-            }
+    // Add or update sub-branding in header
+    const header = document.querySelector('.header h1');
+    if (header && brand.subBranding) {
+        let subBrand = header.querySelector('.sub-branding');
+        if (!subBrand) {
+            subBrand = document.createElement('span');
+            subBrand.className = 'sub-branding';
+            header.appendChild(subBrand);
         }
-    } else if (existingSubBrand) {
-        existingSubBrand.remove();
+        subBrand.textContent = brand.subBranding;
     }
 
     // Update Cattron branding on login page
@@ -77,8 +90,13 @@ function applyBranding() {
         cattronBranding.innerHTML = `${brand.subBranding}<br><span style="margin-top: 4px; display: block;">a service of <strong>Cattron Global</strong></span>`;
     }
 
-    // Store brand for other pages
-    sessionStorage.setItem('currentBrand', JSON.stringify(brand));
+    // Update navigation links to preserve brand
+    document.querySelectorAll('a[href="dashboard.html"], a[href="device.html"], a[href="index.html"]').forEach(link => {
+        const href = link.getAttribute('href');
+        if (!href.includes('?')) {
+            link.href = href + getBrandParam();
+        }
+    });
 
     return brand;
 }
@@ -87,4 +105,4 @@ function applyBranding() {
 document.addEventListener('DOMContentLoaded', applyBranding);
 
 // Export for use
-window.Branding = { detectBrand, applyBranding, BRANDS };
+window.Branding = { detectBrand, applyBranding, getBrandParam, BRANDS };
