@@ -238,7 +238,7 @@ const App = {
         const locationEl = document.getElementById('location');
         if (lat && lng) {
             const mapsUrl = `https://www.google.com/maps?q=${lat},${lng}`;
-            locationEl.innerHTML = `<a href="${mapsUrl}" target="_blank" style="color: var(--accent);">${lat.toFixed(4)}, ${lng.toFixed(4)} 📍</a>`;
+            locationEl.innerHTML = `<a href="${mapsUrl}" target="_blank" style="color: var(--accent);">${lat.toFixed(4)}, ${lng.toFixed(4)}</a>`;
         } else {
             locationEl.textContent = 'N/A';
         }
