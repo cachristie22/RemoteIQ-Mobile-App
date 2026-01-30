@@ -5,6 +5,7 @@
 const App = {
     // Current device data cache
     devices: [],
+    filteredDevices: [],
     currentDevice: null,
 
     /**
@@ -40,6 +41,12 @@ const App = {
             }
         }
 
+        // Set up search
+        const searchInput = document.getElementById('searchInput');
+        if (searchInput) {
+            searchInput.addEventListener('input', (e) => this.filterDevices(e.target.value));
+        }
+
         // Load devices
         await this.loadDevices();
 
@@ -57,6 +64,8 @@ const App = {
         const listEl = document.getElementById('deviceList');
         const loadingEl = document.getElementById('loading');
         const emptyEl = document.getElementById('emptyState');
+        const noResultsEl = document.getElementById('noResults');
+        const searchInput = document.getElementById('searchInput');
 
         if (!listEl) return;
 
@@ -64,9 +73,11 @@ const App = {
         loadingEl.style.display = 'flex';
         listEl.innerHTML = '';
         emptyEl.style.display = 'none';
+        noResultsEl.style.display = 'none';
 
         try {
             this.devices = await API.getDevices();
+            this.filteredDevices = [...this.devices];
 
             loadingEl.style.display = 'none';
 
@@ -75,11 +86,12 @@ const App = {
                 return;
             }
 
-            // Render device cards
-            this.devices.forEach((device, index) => {
-                const card = this.createDeviceCard(device, index);
-                listEl.appendChild(card);
-            });
+            // Apply current search filter if any
+            if (searchInput && searchInput.value) {
+                this.filterDevices(searchInput.value);
+            } else {
+                this.renderDeviceList();
+            }
 
         } catch (error) {
             loadingEl.style.display = 'none';
@@ -94,12 +106,53 @@ const App = {
     },
 
     /**
+     * Filter devices by search query
+     */
+    filterDevices(query) {
+        const noResultsEl = document.getElementById('noResults');
+        const listEl = document.getElementById('deviceList');
+
+        query = query.toLowerCase().trim();
+
+        if (!query) {
+            this.filteredDevices = [...this.devices];
+        } else {
+            this.filteredDevices = this.devices.filter(device => {
+                const name = (device.name || '').toLowerCase();
+                const esn = (device.ESN || '').toLowerCase();
+                return name.includes(query) || esn.includes(query);
+            });
+        }
+
+        if (this.filteredDevices.length === 0 && this.devices.length > 0) {
+            listEl.innerHTML = '';
+            noResultsEl.style.display = 'block';
+        } else {
+            noResultsEl.style.display = 'none';
+            this.renderDeviceList();
+        }
+    },
+
+    /**
+     * Render the filtered device list
+     */
+    renderDeviceList() {
+        const listEl = document.getElementById('deviceList');
+        listEl.innerHTML = '';
+
+        this.filteredDevices.forEach((device, index) => {
+            const card = this.createDeviceCard(device, index);
+            listEl.appendChild(card);
+        });
+    },
+
+    /**
      * Create a device card element
      */
     createDeviceCard(device, index) {
         const card = document.createElement('div');
         card.className = 'card card-clickable device-card fade-in';
-        card.style.animationDelay = `${index * 0.05}s`;
+        card.style.animationDelay = `${index * 0.03}s`;
 
         const isOnline = device.compositeState?.ConnectionState?.value === true;
         const name = device.name || device.ESN || 'Unknown Device';
@@ -185,7 +238,7 @@ const App = {
         const locationEl = document.getElementById('location');
         if (lat && lng) {
             const mapsUrl = `https://www.google.com/maps?q=${lat},${lng}`;
-            locationEl.innerHTML = `<a href="${mapsUrl}" target="_blank" style="color: var(--accent); text-decoration: underline;">${lat.toFixed(4)}, ${lng.toFixed(4)} 📍</a>`;
+            locationEl.innerHTML = `<a href="${mapsUrl}" target="_blank" style="color: var(--accent);">${lat.toFixed(4)}, ${lng.toFixed(4)} 📍</a>`;
         } else {
             locationEl.textContent = 'N/A';
         }
