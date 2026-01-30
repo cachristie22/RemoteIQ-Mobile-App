@@ -54,38 +54,41 @@
     <script src="js/api.js"></script>
     <script src="js/branding.js"></script>
     <script>
-        // Check if already logged in
-        if (API.isAuthenticated()) {
-            const brandParam = window.Branding ? Branding.getBrandParam() : '';
-            window.location.href = 'dashboard.html' + brandParam;
-        }
-
-        // Handle login form
-        const form = document.getElementById('loginForm');
-        const errorEl = document.getElementById('loginError');
-        const loginBtn = document.getElementById('loginBtn');
-
-        form.addEventListener('submit', async (e) => {
-            e.preventDefault();
-
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
-
-            // Disable button and show loading
-            loginBtn.disabled = true;
-            loginBtn.textContent = 'Signing in...';
-            errorEl.classList.remove('show');
-
-            try {
-                await API.login(email, password);
+        document.addEventListener('DOMContentLoaded', function () {
+            // Check if already logged in
+            if (API.isAuthenticated()) {
                 const brandParam = window.Branding ? Branding.getBrandParam() : '';
                 window.location.href = 'dashboard.html' + brandParam;
-            } catch (error) {
-                errorEl.textContent = error.message || 'Invalid credentials';
-                errorEl.classList.add('show');
-                loginBtn.disabled = false;
-                loginBtn.textContent = 'Sign In';
+                return;
             }
+
+            // Handle login form
+            const form = document.getElementById('loginForm');
+            const errorEl = document.getElementById('loginError');
+            const loginBtn = document.getElementById('loginBtn');
+
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+
+                const email = document.getElementById('email').value;
+                const password = document.getElementById('password').value;
+
+                // Disable button and show loading
+                loginBtn.disabled = true;
+                loginBtn.textContent = 'Signing in...';
+                errorEl.classList.remove('show');
+
+                try {
+                    await API.login(email, password);
+                    const brandParam = window.Branding ? Branding.getBrandParam() : '';
+                    window.location.href = 'dashboard.html' + brandParam;
+                } catch (error) {
+                    errorEl.textContent = error.message || 'Invalid credentials';
+                    errorEl.classList.add('show');
+                    loginBtn.disabled = false;
+                    loginBtn.textContent = 'Sign In';
+                }
+            });
         });
     </script>
     <script>
