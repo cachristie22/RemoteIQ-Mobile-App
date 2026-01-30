@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#f5f7fa">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <title>RemoteIQ - Attribute Explorer</title>
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="https://files.onlosant.com/6254b63150e14fb6deb3aa31/navbar-logo.svg">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        .explorer-container {
+            padding: 16px 0;
+        }
+
+        .select-group {
+            margin-bottom: 20px;
+        }
+
+        .select-label {
+            display: block;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+        }
+
+        .select-input {
+            width: 100%;
+            padding: 14px 16px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            font-size: 1rem;
+            color: var(--text-primary);
+            cursor: pointer;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%2364748b' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10l-5 5z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 16px center;
+        }
+
+        .select-input:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px var(--accent-light);
+        }
+
+        .value-display {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 24px;
+            text-align: center;
+            box-shadow: var(--shadow);
+        }
+
+        .value-label {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+        }
+
+        .value-main {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            word-break: break-all;
+        }
+
+        .value-time {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-top: 12px;
+        }
+
+        .no-selection {
+            color: var(--text-muted);
+            font-style: italic;
+        }
+
+        .attribute-count {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="page">
+        <div class="container">
+            <header class="header">
+                <a href="dashboard.html" class="back-btn">
+                    ← Back
+                </a>
+                <button id="refreshBtn" class="btn btn-icon" title="Refresh">
+                    ↻
+                </button>
+            </header>
+
+            <main>
+                <!-- Device Header -->
+                <div class="device-header">
+                    <h2 id="deviceName">Loading...</h2>
+                    <div id="deviceEsn" class="esn"></div>
+                    <div id="connectionBadge" class="connection-badge">
+                        <span class="device-status"></span>
+                        Loading...
+                    </div>
+                </div>
+
+                <div class="explorer-container">
+                    <!-- Device Selector -->
+                    <div class="select-group">
+                        <label class="select-label">Select Device</label>
+                        <select id="deviceSelect" class="select-input">
+                            <option value="">Loading devices...</option>
+                        </select>
+                    </div>
+
+                    <!-- Attribute Selector -->
+                    <div class="select-group">
+                        <label class="select-label">Select Attribute</label>
+                        <select id="attributeSelect" class="select-input" disabled>
+                            <option value="">Select a device first</option>
+                        </select>
+                        <div id="attributeCount" class="attribute-count"></div>
+                    </div>
+
+                    <!-- Value Display -->
+                    <div class="value-display">
+                        <div id="valueLabel" class="value-label">Attribute Value</div>
+                        <div id="valueMain" class="value-main no-selection">Select an attribute</div>
+                        <div id="valueTime" class="value-time"></div>
+                    </div>
+                </div>
+
+                <div style="height: 40px;"></div>
+            </main>
+        </div>
+    </div>
+
+    <script src="js/api.js"></script>
+    <script src="js/branding.js"></script>
+    <script>
+        let devices = [];
+        let currentDevice = null;
+
+        document.addEventListener('DOMContentLoaded', async function () {
+            // Check authentication
+            if (!API.isAuthenticated()) {
+                window.location.href = 'index.html';
+                return;
+            }
+
+            // Load devices
+            await loadDevices();
+
+            // Set up event listeners
+            document.getElementById('deviceSelect').addEventListener('change', onDeviceChange);
+            document.getElementById('attributeSelect').addEventListener('change', onAttributeChange);
+            document.getElementById('refreshBtn').addEventListener('click', loadDevices);
+        });
+
+        async function loadDevices() {
+            const deviceSelect = document.getElementById('deviceSelect');
+            deviceSelect.innerHTML = '<option value="">Loading...</option>';
+
+            try {
+                devices = await API.getDevices();
+
+                deviceSelect.innerHTML = '<option value="">Choose a device...</option>';
+                devices.forEach((device, index) => {
+                    const name = device.name || device.ESN || 'Unknown Device';
+                    const option = document.createElement('option');
+                    option.value = index;
+                    option.textContent = name;
+                    deviceSelect.appendChild(option);
+                });
+
+                // If we had a device selected, try to re-select it
+                if (currentDevice) {
+                    const idx = devices.findIndex(d => d.ESN === currentDevice.ESN);
+                    if (idx >= 0) {
+                        deviceSelect.value = idx;
+                        onDeviceChange();
+                    }
+                }
+            } catch (error) {
+                deviceSelect.innerHTML = '<option value="">Error loading devices</option>';
+            }
+        }
+
+        function onDeviceChange() {
+            const deviceSelect = document.getElementById('deviceSelect');
+            const attributeSelect = document.getElementById('attributeSelect');
+            const attributeCount = document.getElementById('attributeCount');
+            const index = deviceSelect.value;
+
+            if (index === '') {
+                currentDevice = null;
+                attributeSelect.innerHTML = '<option value="">Select a device first</option>';
+                attributeSelect.disabled = true;
+                attributeCount.textContent = '';
+                updateDeviceHeader(null);
+                clearValueDisplay();
+                return;
+            }
+
+            currentDevice = devices[index];
+            updateDeviceHeader(currentDevice);
+
+            // Get all attributes from compositeState
+            const state = currentDevice.compositeState || {};
+            const attributes = Object.keys(state).sort();
+
+            attributeSelect.innerHTML = '<option value="">Choose an attribute...</option>';
+            attributes.forEach(attr => {
+                const option = document.createElement('option');
+                option.value = attr;
+                option.textContent = attr.replace(/_/g, ' ');
+                attributeSelect.appendChild(option);
+            });
+
+            attributeSelect.disabled = false;
+            attributeCount.textContent = `${attributes.length} attributes available`;
+            clearValueDisplay();
+        }
+
+        function onAttributeChange() {
+            const attributeSelect = document.getElementById('attributeSelect');
+            const attr = attributeSelect.value;
+
+            if (!attr || !currentDevice) {
+                clearValueDisplay();
+                return;
+            }
+
+            const state = currentDevice.compositeState || {};
+            const data = state[attr];
+
+            if (data) {
+                document.getElementById('valueLabel').textContent = attr.replace(/_/g, ' ');
+
+                let displayValue = data.value;
+                if (typeof displayValue === 'boolean') {
+                    displayValue = displayValue ? 'True' : 'False';
+                } else if (typeof displayValue === 'number') {
+                    displayValue = Number.isInteger(displayValue) ? displayValue : displayValue.toFixed(2);
+                } else if (displayValue === null || displayValue === undefined) {
+                    displayValue = 'N/A';
+                }
+
+                const valueMain = document.getElementById('valueMain');
+                valueMain.textContent = displayValue;
+                valueMain.classList.remove('no-selection');
+
+                if (data.time) {
+                    const date = new Date(data.time);
+                    document.getElementById('valueTime').textContent = `Last updated: ${date.toLocaleString()}`;
+                } else {
+                    document.getElementById('valueTime').textContent = '';
+                }
+            } else {
+                clearValueDisplay();
+            }
+        }
+
+        function updateDeviceHeader(device) {
+            const nameEl = document.getElementById('deviceName');
+            const esnEl = document.getElementById('deviceEsn');
+            const badge = document.getElementById('connectionBadge');
+
+            if (!device) {
+                nameEl.textContent = 'Attribute Explorer';
+                esnEl.textContent = '';
+                badge.style.display = 'none';
+                return;
+            }
+
+            nameEl.textContent = device.name || device.ESN || 'Device';
+            esnEl.textContent = device.ESN || '';
+
+            const isOnline = device.compositeState?.ConnectionState?.value === true;
+            badge.style.display = 'inline-flex';
+            badge.className = `connection-badge ${isOnline ? 'online' : 'offline'}`;
+            badge.innerHTML = `
+                <span class="device-status ${isOnline ? 'online' : 'offline'}"></span>
+                ${isOnline ? 'Online' : 'Offline'}
+            `;
+        }
+
+        function clearValueDisplay() {
+            document.getElementById('valueLabel').textContent = 'Attribute Value';
+            const valueMain = document.getElementById('valueMain');
+            valueMain.textContent = 'Select an attribute';
+            valueMain.classList.add('no-selection');
+            document.getElementById('valueTime').textContent = '';
+        }
+    </script>
+</body>
+
+</html>
