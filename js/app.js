@@ -152,7 +152,10 @@ const App = {
     getDeviceState(device) {
         const state = device.compositeState || {};
         const isOnline = state.ConnectionState?.value === true;
-        const engineSpeed = state.Engine_Speed?.value || 0;
+
+        // Ensure we handle both number and string values
+        const engineSpeedVal = state.Engine_Speed?.value;
+        const engineSpeed = engineSpeedVal ? Number(engineSpeedVal) : 0;
 
         if (isOnline && engineSpeed > 10) {
             return 'running';
