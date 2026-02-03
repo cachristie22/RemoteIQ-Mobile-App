@@ -1,4 +1,4 @@
-const CACHE_NAME = 'remoteiq-v3';
+const CACHE_NAME = 'remoteiq-v4';
 const STATIC_ASSETS = [
     '/RemoteIQ-Mobile-App/',
     '/RemoteIQ-Mobile-App/index.html',

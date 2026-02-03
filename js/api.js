@@ -113,15 +113,20 @@ const API = {
      * @param {number} resultsPerPage - Results per page (max 200)
      * @param {string} attribute - Attribute filter ('All' for all attributes)
      */
-    async getDevices(page = 0, resultsPerPage = 100, attribute = 'All') {
+    async getDevices(page = 0, resultsPerPage = 20, search = '', attribute = 'All') {
         const params = new URLSearchParams({
             page: page.toString(),
             resultsPerPage: resultsPerPage.toString(),
             attribute
         });
 
-        const data = await this.request(`/api/last_value_query?${params}`);
-        return data.result?.items || [];
+        if (search) {
+            params.append('search', search);
+        }
+
+        // Use V2 endpoint
+        const data = await this.request(`/api/v2/last_value_query?${params}`);
+        return data.result || { items: [], count: 0 };
     },
 
     /**

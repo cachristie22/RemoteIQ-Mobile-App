@@ -5,7 +5,10 @@
 const App = {
     // Current device data cache
     devices: [],
-    filteredDevices: [],
+    currentPage: 0,
+    itemsPerPage: 20,
+    totalItems: 0,
+    isLoading: false,
     currentDevice: null,
 
     /**
@@ -45,120 +48,184 @@ const App = {
         const searchInput = document.getElementById('searchInput');
         const statusFilter = document.getElementById('statusFilter');
 
-        const filterHandler = () => {
-            this.filterDevices(
-                searchInput ? searchInput.value : '',
-                statusFilter ? statusFilter.value : 'all'
-            );
-        };
+        // Debounce search
+        let timeout = null;
+        if (searchInput) {
+            searchInput.addEventListener('input', (e) => {
+                clearTimeout(timeout);
+                timeout = setTimeout(() => {
+                    this.currentPage = 0;
+                    this.loadDevices(false);
+                }, 500);
+            });
+        }
 
-        if (searchInput) searchInput.addEventListener('input', filterHandler);
-        if (statusFilter) statusFilter.addEventListener('change', filterHandler);
+        if (statusFilter) {
+            statusFilter.addEventListener('change', () => {
+                // For now, client-side filter on loaded items
+                this.renderDeviceList();
+            });
+        }
 
         // Load devices
         await this.loadDevices();
 
         // Set up refresh
-        document.getElementById('refreshBtn')?.addEventListener('click', () => this.loadDevices());
+        document.getElementById('refreshBtn')?.addEventListener('click', () => {
+            this.currentPage = 0;
+            this.loadDevices(false);
+        });
 
-        // Auto-refresh every 30 seconds
-        setInterval(() => this.loadDevices(), 30000);
+        // Add Load More button
+        const container = document.getElementById('deviceList')?.parentElement;
+        if (container) {
+            const loadMoreBtn = document.createElement('button');
+            loadMoreBtn.id = 'loadMoreBtn';
+            loadMoreBtn.className = 'btn btn-secondary';
+            loadMoreBtn.style.display = 'none'; // Hidden by default
+            loadMoreBtn.style.margin = '20px auto';
+            loadMoreBtn.style.width = '100%';
+            loadMoreBtn.textContent = 'Load More';
+            loadMoreBtn.onclick = () => {
+                this.currentPage++;
+                this.loadDevices(true);
+            };
+            container.appendChild(loadMoreBtn);
+        }
     },
 
     /**
      * Load and render devices
      */
-    async loadDevices() {
+    /**
+     * Load and render devices
+     * @param {boolean} append - Whether to append to existing list
+     */
+    async loadDevices(append = false) {
         const listEl = document.getElementById('deviceList');
         const loadingEl = document.getElementById('loading');
         const emptyEl = document.getElementById('emptyState');
         const noResultsEl = document.getElementById('noResults');
+        const loadMoreBtn = document.getElementById('loadMoreBtn');
         const searchInput = document.getElementById('searchInput');
-        const statusFilter = document.getElementById('statusFilter');
 
         if (!listEl) return;
 
-        // Show loading
-        loadingEl.style.display = 'flex';
-        listEl.innerHTML = '';
-        emptyEl.style.display = 'none';
-        noResultsEl.style.display = 'none';
+        // Show loading if not appending
+        if (!append) {
+            loadingEl.style.display = 'flex';
+            listEl.innerHTML = '';
+            emptyEl.style.display = 'none';
+            noResultsEl.style.display = 'none';
+            if (loadMoreBtn) loadMoreBtn.style.display = 'none';
+        } else {
+            if (loadMoreBtn) loadMoreBtn.textContent = 'Loading...';
+        }
+
+        this.isLoading = true;
 
         try {
-            this.devices = await API.getAllDevices();
-            this.filteredDevices = [...this.devices];
+            const searchQuery = searchInput ? searchInput.value : '';
+            const result = await API.getDevices(this.currentPage, this.itemsPerPage, searchQuery);
+
+            // Handle both structure types just in case (metadata or array)
+            const newItems = result.items || result;
+            const totalCount = result.count !== undefined ? result.count : (newItems.length < this.itemsPerPage ? newItems.length + (this.currentPage * this.itemsPerPage) : 9999);
+
+            if (append) {
+                this.devices = [...this.devices, ...newItems];
+            } else {
+                this.devices = newItems;
+            }
+
+            this.totalItems = totalCount;
+            this.isLoading = false;
 
             loadingEl.style.display = 'none';
+            if (loadMoreBtn) loadMoreBtn.textContent = 'Load More';
 
             // Show total count
             const countEl = document.getElementById('deviceCount');
-            if (countEl) countEl.textContent = `(${this.devices.length})`;
+            if (countEl) countEl.textContent = `(${this.devices.length}${this.totalItems > this.devices.length ? '+' : ''})`;
 
             if (this.devices.length === 0) {
-                emptyEl.style.display = 'block';
+                if (searchQuery) {
+                    noResultsEl.style.display = 'block';
+                } else {
+                    emptyEl.style.display = 'block';
+                }
+                if (loadMoreBtn) loadMoreBtn.style.display = 'none';
                 return;
             }
 
-            // Apply current filters
-            this.filterDevices(
-                searchInput ? searchInput.value : '',
-                statusFilter ? statusFilter.value : 'all'
-            );
+            // Render
+            this.renderDeviceList(append ? newItems : null);
+
+            // Manage Load More visibility
+            if (loadMoreBtn) {
+                // If we got a full page, assume there might be more (or use totalCount if reliable)
+                const hasMore = newItems.length === this.itemsPerPage;
+                loadMoreBtn.style.display = hasMore ? 'block' : 'none';
+            }
 
         } catch (error) {
+            this.isLoading = false;
             loadingEl.style.display = 'none';
-            listEl.innerHTML = `
-                <div class="empty-state">
-                    <div class="empty-state-icon">⚠️</div>
-                    <p>Failed to load devices</p>
-                    <p style="font-size: 0.75rem; margin-top: 8px;">${error.message}</p>
-                </div>
-            `;
-        }
-    },
-
-    /**
-     * Filter devices by search query and status
-     */
-    filterDevices(query, status = 'all') {
-        const noResultsEl = document.getElementById('noResults');
-        const listEl = document.getElementById('deviceList');
-
-        query = query.toLowerCase().trim();
-
-        this.filteredDevices = this.devices.filter(device => {
-            // Text Match
-            const name = (device.name || '').toLowerCase();
-            const esn = (device.ESN || '').toLowerCase();
-            const textMatch = !query || name.includes(query) || esn.includes(query);
-
-            // Status Match
-            const deviceState = this.getDeviceState(device);
-            const statusMatch = status === 'all' || deviceState === status;
-
-            return textMatch && statusMatch;
-        });
-
-        if (this.filteredDevices.length === 0 && this.devices.length > 0) {
-            listEl.innerHTML = '';
-            noResultsEl.style.display = 'block';
-        } else {
-            noResultsEl.style.display = 'none';
-            this.renderDeviceList();
+            if (!append) {
+                listEl.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">⚠️</div>
+                        <p>Failed to load devices</p>
+                        <p style="font-size: 0.75rem; margin-top: 8px;">${error.message}</p>
+                    </div>
+                `;
+            } else {
+                if (loadMoreBtn) loadMoreBtn.textContent = 'Failed to load more';
+            }
         }
     },
 
     /**
      * Render the filtered device list
+     * @param {Array} items - Optional items to append. If null, re-renders all.
      */
-    renderDeviceList() {
+    renderDeviceList(items = null) {
         const listEl = document.getElementById('deviceList');
-        listEl.innerHTML = '';
+        const statusFilter = document.getElementById('statusFilter');
+        const filterValue = statusFilter ? statusFilter.value : 'all';
 
-        this.filteredDevices.forEach((device, index) => {
+        // If not appending, clear list
+        if (!items) {
+            listEl.innerHTML = '';
+            items = this.devices;
+        }
+
+        let visibleCount = 0;
+
+        items.forEach((device, index) => {
+            // Apply client-side status filter
+            const deviceState = this.getDeviceState(device);
+            if (filterValue !== 'all' && deviceState !== filterValue) {
+                return;
+            }
+
             const card = this.createDeviceCard(device, index);
             listEl.appendChild(card);
+            visibleCount++;
         });
+
+        // Show/Hide no results if filter hides everything
+        const noResultsEl = document.getElementById('noResults');
+        if (noResultsEl) {
+            // Only show 'No Results' if we have loaded devices but none match the status filter
+            // AND we are doing a full render (items == this.devices)
+            if (this.devices.length > 0 && items === this.devices && visibleCount === 0) {
+                noResultsEl.style.display = 'block';
+                noResultsEl.textContent = 'No devices match the selected filter.';
+            } else if (this.devices.length > 0) {
+                noResultsEl.style.display = 'none';
+            }
+        }
     },
 
     /**
@@ -314,9 +381,15 @@ const App = {
      */
     async refreshDevice() {
         try {
-            const devices = await API.getAllDevices();
-            const updated = devices.find(d => d.ESN === this.currentDevice.ESN);
-            if (updated) {
+            // Search by ESN to find specific device
+            const result = await API.getDevices(0, 1, this.currentDevice.ESN);
+            const items = result.items || result;
+
+            if (items.length > 0) {
+                // In case search returns multiple (e.g. partial match), try to find exact ESN match
+                // or just take the first one if we trust the search quality
+                const updated = items.find(d => d.ESN === this.currentDevice.ESN) || items[0];
+
                 this.currentDevice = updated;
                 sessionStorage.setItem('selectedDevice', JSON.stringify(updated));
                 this.renderDeviceDetail();

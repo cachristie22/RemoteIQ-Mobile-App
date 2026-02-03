@@ -1,0 +1,836 @@
+{
+    "_exportDate": "2026-02-03T21:51:13.588Z",
+    "_type": "flow",
+    "applicationId": "6254b63150e14fb6deb3aa31",
+    "customNodeVersions": [],
+    "customNodes": [],
+    "description": "Created for Endpoint GET /api/last_value_query",
+    "enabled": true,
+    "flowClass": "experience",
+    "globals": [],
+    "name": "GET /api/last_value_query (Search Enabled)",
+    "nodes": [
+        {
+            "config": {
+                "bodyTemplate": "{\n\t\"result\":{{jsonEncode working.result}}\n}",
+                "bodyTemplateType": "string",
+                "cookieInfo": [],
+                "headerInfo": [
+                    {
+                        "keyTemplate": "Content-Type",
+                        "valueTemplate": "application/json"
+                    }
+                ],
+                "mqttTopicsTemplate": [],
+                "replyIdPath": "",
+                "replyType": "custom",
+                "responseCodeTemplate": "200",
+                "sameSiteTemplate": ""
+            },
+            "id": "UswosK1Sza",
+            "meta": {
+                "category": "output",
+                "description": "",
+                "label": "Endpoint: Reply",
+                "mqttTopicsType": [],
+                "name": "endpoint-reply",
+                "x": 1040,
+                "y": 840
+            },
+            "outputIds": [
+                [
+                    "6V71eh1Y9I"
+                ]
+            ],
+            "type": "EndpointReplyNode"
+        },
+        {
+            "config": {
+                "level": "verbose",
+                "message": "",
+                "property": ""
+            },
+            "id": "BqQTyO_A5v",
+            "meta": {
+                "category": "debug",
+                "description": "",
+                "label": "failed",
+                "name": "debug",
+                "x": 460,
+                "y": 640
+            },
+            "outputIds": [],
+            "type": "DebugNode"
+        },
+        {
+            "config": {
+                "errorsPath": "working.dataValidationErrors",
+                "schema": "{\r\n  \"type\": \"object\",\r\n  \"required\": [\r\n    \"attribute\"\r\n  ],\r\n  \"properties\": {\r\n    \"attribute\": {\r\n      \"oneOf\": [\r\n        {\r\n          \"type\": \"array\",\r\n          \"items\": {\r\n            \"type\": \"string\"\r\n          }\r\n        },\r\n        {\r\n          \"type\": \"string\"\r\n        }\r\n      ]\r\n    },\r\n    \"page\": {\r\n      \"type\": \"string\"\r\n    },\r\n    \"search\": {\r\n      \"type\": \"string\"\r\n    },\r\n    \"resultsPerPage\": {\r\n      \"type\": \"integer\",\r\n      \"minimum\": 0,\r\n      \"maximum\": 200\r\n    }\r\n  }\r\n}",
+                "schemaType": "json",
+                "toValidatePath": "data.query"
+            },
+            "id": "GKnNv6ngoN",
+            "meta": {
+                "category": "logic",
+                "description": "",
+                "label": "Validate Payload",
+                "name": "validate-payload",
+                "x": 640,
+                "y": 260
+            },
+            "outputIds": [
+                [
+                    "ilo4FORqlt"
+                ],
+                [
+                    "RsCDynyYnF"
+                ]
+            ],
+            "type": "ValidatePayloadNode"
+        },
+        {
+            "config": {
+                "level": "verbose",
+                "message": "",
+                "property": ""
+            },
+            "id": "6V71eh1Y9I",
+            "meta": {
+                "category": "debug",
+                "description": "",
+                "label": "ok",
+                "name": "debug",
+                "x": 1040,
+                "y": 940
+            },
+            "outputIds": [],
+            "type": "DebugNode"
+        },
+        {
+            "config": {
+                "bodyTemplate": "{\n  \"error\": \"Validation Error\",\n  \"message\": \"The request body contains invalid data according to the JSON Schema.\",\n  \"errors\":{{jsonEncode working.dataValidationErrors}}\n}",
+                "bodyTemplateType": "string",
+                "cookieInfo": [],
+                "headerInfo": [
+                    {
+                        "keyTemplate": "Content-Type",
+                        "valueTemplate": "application/json"
+                    }
+                ],
+                "mqttTopicsTemplate": [],
+                "replyIdPath": "",
+                "replyType": "custom",
+                "responseCodeTemplate": "422",
+                "sameSiteTemplate": ""
+            },
+            "id": "ilo4FORqlt",
+            "meta": {
+                "category": "output",
+                "description": "",
+                "label": "Endpoint: Reply",
+                "mqttTopicsType": [],
+                "name": "endpoint-reply",
+                "x": 460,
+                "y": 540
+            },
+            "outputIds": [
+                [
+                    "BqQTyO_A5v"
+                ]
+            ],
+            "type": "EndpointReplyNode"
+        },
+        {
+            "config": {
+                "attributesAsObject": false,
+                "nameTemplate": "*{{data.query.search}}*",
+                "findMetadata": true,
+                "findMethod": "experienceGroupId",
+                "findMultiple": true,
+                "idTemplate": "{{experience.user.experienceGroups.[0].id}}",
+                "includeConnectionStatus": false,
+                "includeState": true,
+                "resultPath": "working.result",
+                "resultsPage": "{{data.query.page}}",
+                "resultsPerPage": "{{data.query.resultsPerPage}}",
+                "sortDirection": "asc",
+                "sortField": "name",
+                "tagsAsObject": true
+            },
+            "id": "qZNWxA3ST1",
+            "meta": {
+                "category": "data",
+                "description": "",
+                "label": "Device: Get",
+                "name": "get-device",
+                "x": 1040,
+                "y": 640
+            },
+            "outputIds": [
+                [
+                    "9SaAzisSmb"
+                ]
+            ],
+            "type": "GetDeviceNode"
+        },
+        {
+            "config": {
+                "scopePath": "",
+                "script": "payload.working.result.items.forEach(device => {\r\n  delete device._etag;\r\n  delete device.applicationId;\r\n  delete device.attributes;\r\n  delete device.deviceClass;\r\n  delete device.id;\r\n  delete device.lastUpdated;\r\n\r\n  if(payload.data.query.simplified == \"\"){\r\n    delete device.description;\r\n    delete device.creationDate;\r\n    delete device.ancestorIds;\r\n    delete device.deviceId;\r\n  }\r\n\r\n  //Add device tag if exist\r\n  if (device.tags[\"ESN\"]){\r\n    device[\"ESN\"] = device.tags[\"ESN\"][0]\r\n  }\r\n\r\n  if (device.tags[\"Unit_Number\"]){\r\n    device[\"Unit_Number\"] = device.tags[\"Unit_Number\"][0]\r\n  }\r\n\r\n  delete device.tags;\r\n})\r\n\r\ndelete payload.working.result.sortDirection\r\ndelete payload.working.result.sortField\r\ndelete payload.working.result.filter\r\ndelete payload.working.result.findMethod"
+            },
+            "id": "9SaAzisSmb",
+            "meta": {
+                "category": "logic",
+                "description": "",
+                "label": "Function",
+                "name": "function",
+                "x": 1040,
+                "y": 740
+            },
+            "outputIds": [
+                [
+                    "UswosK1Sza"
+                ]
+            ],
+            "type": "RawFunctionNode"
+        },
+        {
+            "config": {
+                "scopePath": "",
+                "script": "//Parse resultsPerPage to number to be correctly validated then\nif (payload.data.query.hasOwnProperty('resultsPerPage')){\n  payload.data.query.resultsPerPage= parseInt(payload.data.query.resultsPerPage)\n}"
+            },
+            "id": "nZGBKbsW_t",
+            "meta": {
+                "category": "logic",
+                "description": "",
+                "label": "check Results Per Page",
+                "name": "function",
+                "x": 640,
+                "y": 160
+            },
+            "outputIds": [
+                [
+                    "GKnNv6ngoN"
+                ]
+            ],
+            "type": "RawFunctionNode"
+        },
+        {
+            "config": {
+                "attributes": [
+                    "Location",
+                    "Engine_Hours"
+                ],
+                "attributesAsObject": false,
+                "findMetadata": false,
+                "findMethod": "experienceGroupId",
+                "findMultiple": true,
+                "idTemplate": "62dff4cb9173754455183d46",
+                "includeConnectionStatus": true,
+                "includeState": true,
+                "resultPath": "working.result",
+                "resultsPage": "",
+                "resultsPerPage": "",
+                "sortDirection": "asc",
+                "sortField": "name",
+                "tagsAsObject": true
+            },
+            "id": "u0Rg_Ua_GI",
+            "meta": {
+                "category": "data",
+                "description": "",
+                "label": "Device: Get",
+                "name": "get-device",
+                "x": 240,
+                "y": 120
+            },
+            "outputIds": [
+                [
+                    "z8K94aBuje"
+                ]
+            ],
+            "type": "GetDeviceNode"
+        },
+        {
+            "config": {
+                "level": "verbose",
+                "message": "",
+                "property": ""
+            },
+            "id": "z8K94aBuje",
+            "meta": {
+                "category": "debug",
+                "description": "",
+                "label": "Debug",
+                "name": "debug",
+                "x": 240,
+                "y": 220
+            },
+            "outputIds": [],
+            "type": "DebugNode"
+        },
+        {
+            "config": {
+                "attributesAsObject": false,
+                "findMetadata": false,
+                "findMethod": "query",
+                "findMultiple": false,
+                "includeConnectionStatus": true,
+                "includeState": false,
+                "queryTemplate": "{\n  \"$and\": [\n    {\n      \"attributeName\": {\n        \"$eq\": \"{{data.query.attribute}}\"\n      }\n    }\n  ]\n}",
+                "resultPath": "working.validDevices",
+                "sortDirection": "asc",
+                "sortField": "name",
+                "tagsAsObject": false
+            },
+            "id": "RsCDynyYnF",
+            "meta": {
+                "category": "data",
+                "description": "",
+                "label": "Device: Get",
+                "name": "get-device",
+                "x": 760,
+                "y": 360
+            },
+            "outputIds": [
+                [
+                    "sNRv0p3jKi"
+                ]
+            ],
+            "type": "GetDeviceNode"
+        },
+        {
+            "config": {
+                "expression": "{{working.validDevices}}"
+            },
+            "id": "MKZbG4O_nd",
+            "meta": {
+                "category": "logic",
+                "description": "",
+                "label": "Valid Attribute",
+                "name": "conditional",
+                "x": 1240,
+                "y": 1080
+            },
+            "outputIds": [
+                [
+                    "UKBRlQgQNV"
+                ],
+                [
+                    "jiPoXXKosd"
+                ]
+            ],
+            "type": "ConditionalNode"
+        },
+        {
+            "config": {
+                "level": "verbose",
+                "message": "",
+                "property": ""
+            },
+            "id": "av46MGz7yz",
+            "meta": {
+                "category": "debug",
+                "description": "",
+                "label": "attr list",
+                "name": "debug",
+                "x": 1160,
+                "y": 1520
+            },
+            "outputIds": [],
+            "type": "DebugNode"
+        },
+        {
+            "config": {
+                "bodyTemplate": "{\n  \"error\": \"Validation Error\",\n  \"message\": \"This attribute does not exist. Plese use one of the following attributes:\",\n  \"Valid_Attributes\":{{jsonEncode working.resultArray}}\n}",
+                "bodyTemplateType": "string",
+                "cookieInfo": [],
+                "headerInfo": [
+                    {
+                        "keyTemplate": "Content-Type",
+                        "valueTemplate": "application/json"
+                    }
+                ],
+                "mqttTopicsTemplate": [],
+                "replyIdPath": "",
+                "replyType": "custom",
+                "responseCodeTemplate": "422",
+                "sameSiteTemplate": ""
+            },
+            "id": "dPyTNo0rWW",
+            "meta": {
+                "category": "output",
+                "description": "",
+                "label": "Endpoint: Reply",
+                "mqttTopicsType": [],
+                "name": "endpoint-reply",
+                "x": 1160,
+                "y": 1420
+            },
+            "outputIds": [
+                [
+                    "av46MGz7yz"
+                ]
+            ],
+            "type": "EndpointReplyNode"
+        },
+        {
+            "config": {
+                "attributesAsObject": false,
+                "findMetadata": false,
+                "findMethod": "experienceGroupId",
+                "findMultiple": false,
+                "idTemplate": "{{experience.user.experienceGroups.[0].id}}",
+                "includeConnectionStatus": false,
+                "includeState": true,
+                "resultPath": "working.result",
+                "sortDirection": "asc",
+                "sortField": "name",
+                "tagsAsObject": true
+            },
+            "id": "UKBRlQgQNV",
+            "meta": {
+                "category": "data",
+                "description": "",
+                "label": "Device: Get",
+                "name": "get-device",
+                "x": 1160,
+                "y": 1220
+            },
+            "outputIds": [
+                [
+                    "oDu2xCwYY8"
+                ]
+            ],
+            "type": "GetDeviceNode"
+        },
+        {
+            "config": {
+                "scopePath": "",
+                "script": "payload.working.resultArray = [];\r\n\r\npayload.working.resultArray.push(\"All\");\r\n\r\npayload.working.result.attributes.forEach(attribute => {\r\n  payload.working.resultArray.push(attribute.name);\r\n})\r\n\r\n/* payload.working.result.attributes.forEach(attribute => {\r\n  delete attribute.attributeTags;\r\n  delete attribute.description;\r\n  delete attribute.dataType;\r\n  delete attribute.contentType;\r\n}) */"
+            },
+            "id": "oDu2xCwYY8",
+            "meta": {
+                "category": "logic",
+                "description": "",
+                "label": "Function",
+                "name": "function",
+                "x": 1160,
+                "y": 1320
+            },
+            "outputIds": [
+                [
+                    "dPyTNo0rWW"
+                ]
+            ],
+            "type": "RawFunctionNode"
+        },
+        {
+            "config": {
+                "expression": "{{data.query.attribute}} == 'All'"
+            },
+            "id": "sNRv0p3jKi",
+            "meta": {
+                "category": "logic",
+                "description": "",
+                "label": "Conditional",
+                "name": "conditional",
+                "x": 760,
+                "y": 480
+            },
+            "outputIds": [
+                [
+                    "7kZqcCqhMU"
+                ],
+                [
+                    "qZNWxA3ST1"
+                ]
+            ],
+            "type": "ConditionalNode"
+        },
+        {
+            "config": {
+                "bodyTemplate": "{\n\t\"result\":{{jsonEncode working.result}}\n}",
+                "bodyTemplateType": "string",
+                "cookieInfo": [],
+                "headerInfo": [
+                    {
+                        "keyTemplate": "Content-Type",
+                        "valueTemplate": "application/json"
+                    }
+                ],
+                "mqttTopicsTemplate": [],
+                "replyIdPath": "",
+                "replyType": "custom",
+                "responseCodeTemplate": "200",
+                "sameSiteTemplate": ""
+            },
+            "id": "s1nqgv_wgE",
+            "meta": {
+                "category": "output",
+                "description": "",
+                "label": "Endpoint: Reply",
+                "mqttTopicsType": [],
+                "name": "endpoint-reply",
+                "x": 1380,
+                "y": 1420
+            },
+            "outputIds": [
+                [
+                    "DgWzExS13z"
+                ]
+            ],
+            "type": "EndpointReplyNode"
+        },
+        {
+            "config": {
+                "level": "verbose",
+                "message": "",
+                "property": ""
+            },
+            "id": "DgWzExS13z",
+            "meta": {
+                "category": "debug",
+                "description": "",
+                "label": "ok",
+                "name": "debug",
+                "x": 1380,
+                "y": 1520
+            },
+            "outputIds": [],
+            "type": "DebugNode"
+        },
+        {
+            "config": {
+                "attributes": [
+                    "{{data.query.attribute}}"
+                ],
+                "attributesAsObject": false,
+                "findMetadata": true,
+                "findMethod": "experienceGroupId",
+                "findMultiple": true,
+                "idTemplate": "{{experience.user.experienceGroups.[0].id}}",
+                "includeConnectionStatus": false,
+                "includeState": true,
+                "resultPath": "working.result",
+                "resultsPage": "{{data.query.page}}",
+                "resultsPerPage": "{{data.query.resultsPerPage}}",
+                "sortDirection": "asc",
+                "sortField": "name",
+                "tagsAsObject": true
+            },
+            "id": "jiPoXXKosd",
+            "meta": {
+                "category": "data",
+                "description": "",
+                "label": "Device: Get",
+                "name": "get-device",
+                "x": 1380,
+                "y": 1220
+            },
+            "outputIds": [
+                [
+                    "zCjhaUeqyA"
+                ]
+            ],
+            "type": "GetDeviceNode"
+        },
+        {
+            "config": {
+                "scopePath": "",
+                "script": "payload.working.result.items.forEach(device => {\r\n  delete device._etag;\r\n  delete device.applicationId;\r\n  delete device.attributes;\r\n  delete device.deviceClass;\r\n  delete device.deviceId;\r\n  delete device.id;\r\n  delete device.lastUpdated;\r\n\r\n  //Add device tag if exist\r\n  if (device.tags[\"ESN\"]){\r\n    device[\"ESN\"] = device.tags[\"ESN\"][0]\r\n  }\r\n\r\n  delete device.tags;\r\n})\r\n\r\ndelete payload.working.result.sortDirection\r\ndelete payload.working.result.sortField\r\ndelete payload.working.result.filter\r\ndelete payload.working.result.findMethod"
+            },
+            "id": "zCjhaUeqyA",
+            "meta": {
+                "category": "logic",
+                "description": "",
+                "label": "Function",
+                "name": "function",
+                "x": 1380,
+                "y": 1320
+            },
+            "outputIds": [
+                [
+                    "s1nqgv_wgE"
+                ]
+            ],
+            "type": "RawFunctionNode"
+        },
+        {
+            "config": {
+                "attributesAsObject": false,
+                "findMetadata": false,
+                "findMethod": "experienceGroupId",
+                "findMultiple": false,
+                "idTemplate": "{{experience.user.experienceGroups.[0].id}}",
+                "includeConnectionStatus": false,
+                "includeState": true,
+                "resultPath": "working.result",
+                "sortDirection": "asc",
+                "sortField": "name",
+                "tagsAsObject": true
+            },
+            "id": "7kZqcCqhMU",
+            "meta": {
+                "category": "data",
+                "description": "",
+                "label": "Device: Get",
+                "name": "get-device",
+                "x": 680,
+                "y": 660
+            },
+            "outputIds": [
+                [
+                    "v1m5HnKbwn"
+                ]
+            ],
+            "type": "GetDeviceNode"
+        },
+        {
+            "config": {
+                "scopePath": "",
+                "script": "//Build list of valid attributes\r\npayload.working.resultArray = [];\r\n\r\npayload.working.resultArray.push(\"All\");\r\n\r\npayload.working.result.attributes.forEach(attribute => {\r\n  payload.working.resultArray.push(attribute.name);\r\n})\r\n\r\n//Transform the incoming string into an array\r\nconst arr = payload.data.query.attribute.replace(/[\\[\\]]/g, '').split(',');\r\nlet attrArray= Array.from(arr);\r\npayload.data.query.attributeArray = attrArray;\r\nlet validAttrList = payload.working.resultArray;\r\n\r\n//Validate that attrArray is present in validAttrList\r\nfunction findMissingElements(arr1, arr2) {\r\n  const missingElements = arr1.filter(element => !arr2.includes(element));\r\n  return missingElements;\r\n}\r\n\r\nconst missing = findMissingElements(attrArray, validAttrList);\r\npayload.working.missing = findMissingElements(attrArray, validAttrList);\r\n\r\nif (missing.length === 0) {\r\n  payload.working.validation = true;\r\n} else {\r\n  payload.working.validation = false;\r\n}"
+            },
+            "id": "v1m5HnKbwn",
+            "meta": {
+                "category": "logic",
+                "description": "",
+                "label": "Function",
+                "name": "function",
+                "x": 680,
+                "y": 760
+            },
+            "outputIds": [
+                [
+                    "sjBiVCTWr0"
+                ]
+            ],
+            "type": "RawFunctionNode"
+        },
+        {
+            "config": {
+                "level": "verbose",
+                "message": "",
+                "property": ""
+            },
+            "id": "L6vSuRWHTG",
+            "meta": {
+                "category": "debug",
+                "description": "",
+                "label": "attr list",
+                "name": "debug",
+                "x": 500,
+                "y": 1120
+            },
+            "outputIds": [],
+            "type": "DebugNode"
+        },
+        {
+            "config": {
+                "bodyTemplate": "{\n  \"error\": \"Validation Error\",\n  \"message\": \"These attributes: [{{working.missing}}] do not exist. Plese use one of the following attributes:\",\n  \"Valid_Attributes\":{{jsonEncode working.resultArray}}\n}",
+                "bodyTemplateType": "string",
+                "cookieInfo": [],
+                "headerInfo": [
+                    {
+                        "keyTemplate": "Content-Type",
+                        "valueTemplate": "application/json"
+                    }
+                ],
+                "mqttTopicsTemplate": [],
+                "replyIdPath": "",
+                "replyType": "custom",
+                "responseCodeTemplate": "422",
+                "sameSiteTemplate": ""
+            },
+            "id": "YbiWNmOQY6",
+            "meta": {
+                "category": "output",
+                "description": "",
+                "label": "Endpoint: Reply",
+                "mqttTopicsType": [],
+                "name": "endpoint-reply",
+                "x": 500,
+                "y": 1020
+            },
+            "outputIds": [
+                [
+                    "L6vSuRWHTG"
+                ]
+            ],
+            "type": "EndpointReplyNode"
+        },
+        {
+            "config": {
+                "expression": "{{working.validation}}"
+            },
+            "id": "sjBiVCTWr0",
+            "meta": {
+                "category": "logic",
+                "description": "",
+                "label": "Conditional",
+                "name": "conditional",
+                "x": 680,
+                "y": 900
+            },
+            "outputIds": [
+                [
+                    "YbiWNmOQY6"
+                ],
+                [
+                    "EaYXEsX2B1"
+                ]
+            ],
+            "type": "ConditionalNode"
+        },
+        {
+            "config": {
+                "bodyTemplate": "{\n\t\"result\":{{jsonEncode working.result}}\n}",
+                "bodyTemplateType": "string",
+                "cookieInfo": [],
+                "headerInfo": [
+                    {
+                        "keyTemplate": "Content-Type",
+                        "valueTemplate": "application/json"
+                    }
+                ],
+                "mqttTopicsTemplate": [],
+                "replyIdPath": "",
+                "replyType": "custom",
+                "responseCodeTemplate": "200",
+                "sameSiteTemplate": ""
+            },
+            "id": "oYsZV7U9gL",
+            "meta": {
+                "category": "output",
+                "description": "",
+                "label": "Endpoint: Reply",
+                "mqttTopicsType": [],
+                "name": "endpoint-reply",
+                "x": 720,
+                "y": 1240
+            },
+            "outputIds": [
+                [
+                    "vbXNd9WnJN"
+                ]
+            ],
+            "type": "EndpointReplyNode"
+        },
+        {
+            "config": {
+                "level": "verbose",
+                "message": "",
+                "property": ""
+            },
+            "id": "vbXNd9WnJN",
+            "meta": {
+                "category": "debug",
+                "description": "",
+                "label": "ok",
+                "name": "debug",
+                "x": 720,
+                "y": 1340
+            },
+            "outputIds": [],
+            "type": "DebugNode"
+        },
+        {
+            "config": {
+                "attributes": [
+                    "{{data.query.attributeArray}}"
+                ],
+                "attributesAsObject": false,
+                "nameTemplate": "*{{data.query.search}}*",
+                "findMetadata": true,
+                "findMethod": "experienceGroupId",
+                "findMultiple": true,
+                "idTemplate": "{{experience.user.experienceGroups.[0].id}}",
+                "includeConnectionStatus": false,
+                "includeState": true,
+                "resultPath": "working.result",
+                "resultsPage": "{{data.query.page}}",
+                "resultsPerPage": "{{data.query.resultsPerPage}}",
+                "sortDirection": "asc",
+                "sortField": "name",
+                "tagsAsObject": true
+            },
+            "id": "EaYXEsX2B1",
+            "meta": {
+                "category": "data",
+                "description": "",
+                "label": "Device: Get",
+                "name": "get-device",
+                "x": 720,
+                "y": 1040
+            },
+            "outputIds": [
+                [
+                    "Yx7n446XnD"
+                ]
+            ],
+            "type": "GetDeviceNode"
+        },
+        {
+            "config": {
+                "scopePath": "",
+                "script": "payload.working.result.items.forEach(device => {\r\n  delete device._etag;\r\n  delete device.applicationId;\r\n  delete device.attributes;\r\n  delete device.deviceClass;\r\n  delete device.id;\r\n  delete device.lastUpdated;\r\n  if(payload.data.query.simplified == \"\"){\r\n    delete device.description;\r\n    delete device.creationDate;\r\n    delete device.ancestorIds;\r\n    delete device.deviceId;\r\n  }\r\n\r\n  //Add device tag if exist\r\n  if (device.tags[\"ESN\"]){\r\n    device[\"ESN\"] = device.tags[\"ESN\"][0]\r\n  }\r\n\r\n  //Add device tag if exist\r\n  if (device.tags[\"Unit_Number\"]){\r\n    device[\"Unit_Number\"] = device.tags[\"Unit_Number\"][0]\r\n  }\r\n\r\n  delete device.tags;\r\n})\r\n\r\ndelete payload.working.result.sortDirection\r\ndelete payload.working.result.sortField\r\ndelete payload.working.result.filter\r\ndelete payload.working.result.findMethod"
+            },
+            "id": "Yx7n446XnD",
+            "meta": {
+                "category": "logic",
+                "description": "",
+                "label": "Function",
+                "name": "function",
+                "x": 720,
+                "y": 1140
+            },
+            "outputIds": [
+                [
+                    "oYsZV7U9gL"
+                ]
+            ],
+            "type": "RawFunctionNode"
+        }
+    ],
+    "triggers": [
+        {
+            "config": {},
+            "key": "663e0b32b1ea3e48d7a87cda",
+            "meta": {
+                "category": "trigger",
+                "description": "",
+                "label": "GET /api/last_value_query",
+                "name": "endpoint",
+                "uiId": "G0V4adTvjm",
+                "x": 640,
+                "y": 40
+            },
+            "outputIds": [
+                [
+                    "nZGBKbsW_t"
+                ]
+            ],
+            "type": "endpoint"
+        },
+        {
+            "config": {},
+            "key": "663e0b33b1ea3e48d7a87cdc-ZVRou_o9KrzqBBXE5WNLa",
+            "meta": {
+                "category": "trigger",
+                "description": "",
+                "label": "Virtual Button",
+                "name": "virtualButton",
+                "payload": "",
+                "uiId": "5Lwu2svxTN",
+                "x": 240,
+                "y": 20
+            },
+            "outputIds": [
+                [
+                    "u0Rg_Ua_GI"
+                ]
+            ],
+            "type": "virtualButton"
+        }
+    ]
+}
