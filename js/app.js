@@ -90,6 +90,10 @@ const App = {
 
             loadingEl.style.display = 'none';
 
+            // Show total count
+            const countEl = document.getElementById('deviceCount');
+            if (countEl) countEl.textContent = `(${this.devices.length})`;
+
             if (this.devices.length === 0) {
                 emptyEl.style.display = 'block';
                 return;
