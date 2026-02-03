@@ -125,6 +125,27 @@ const API = {
     },
 
     /**
+     * Fetch all devices recursively to bypass pagination limits
+     */
+    async getAllDevices() {
+        let allDevices = [];
+        let page = 0;
+        const limit = 200; // API Max
+
+        while (true) {
+            const items = await this.getDevices(page, limit);
+            allDevices = allDevices.concat(items);
+
+            // If we got fewer items than the limit, we've reached the last page
+            if (items.length < limit) {
+                break;
+            }
+            page++;
+        }
+        return allDevices;
+    },
+
+    /**
      * Send a command to a device
      * @param {string} deviceId - The device ID
      * @param {string} command - Command name (e.g., 'Start_Engine', 'Stop_Engine')

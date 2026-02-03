@@ -85,7 +85,7 @@ const App = {
         noResultsEl.style.display = 'none';
 
         try {
-            this.devices = await API.getDevices();
+            this.devices = await API.getAllDevices();
             this.filteredDevices = [...this.devices];
 
             loadingEl.style.display = 'none';
@@ -310,7 +310,7 @@ const App = {
      */
     async refreshDevice() {
         try {
-            const devices = await API.getDevices();
+            const devices = await API.getAllDevices();
             const updated = devices.find(d => d.ESN === this.currentDevice.ESN);
             if (updated) {
                 this.currentDevice = updated;
