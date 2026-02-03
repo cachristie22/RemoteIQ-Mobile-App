@@ -147,6 +147,22 @@ const App = {
     },
 
     /**
+     * Get device state: 'running', 'online', or 'offline'
+     */
+    getDeviceState(device) {
+        const state = device.compositeState || {};
+        const isOnline = state.ConnectionState?.value === true;
+        const engineSpeed = state.Engine_Speed?.value || 0;
+
+        if (isOnline && engineSpeed > 10) {
+            return 'running';
+        } else if (isOnline) {
+            return 'online';
+        }
+        return 'offline';
+    },
+
+    /**
      * Create a device card element
      */
     createDeviceCard(device, index) {
@@ -154,12 +170,12 @@ const App = {
         card.className = 'card card-clickable device-card fade-in';
         card.style.animationDelay = `${index * 0.03}s`;
 
-        const isOnline = device.compositeState?.ConnectionState?.value === true;
+        const deviceState = this.getDeviceState(device);
         const name = device.name || device.ESN || 'Unknown Device';
         const esn = device.ESN || '';
 
         card.innerHTML = `
-            <div class="device-status ${isOnline ? 'online' : 'offline'}"></div>
+            <div class="device-status ${deviceState}"></div>
             <div class="device-info">
                 <div class="device-name">${this.escapeHtml(name)}</div>
                 <div class="device-esn">${this.escapeHtml(esn)}</div>
@@ -213,12 +229,17 @@ const App = {
         document.getElementById('deviceEsn').textContent = device.ESN || '';
 
         // Connection status
-        const isOnline = state.ConnectionState?.value === true;
+        // Connection status
+        const deviceState = this.getDeviceState(device);
+        let stateLabel = 'Offline';
+        if (deviceState === 'online') stateLabel = 'Online';
+        if (deviceState === 'running') stateLabel = 'Engine Running';
+
         const badge = document.getElementById('connectionBadge');
-        badge.className = `connection-badge ${isOnline ? 'online' : 'offline'}`;
+        badge.className = `connection-badge ${deviceState}`;
         badge.innerHTML = `
-            <span class="device-status ${isOnline ? 'online' : 'offline'}"></span>
-            ${isOnline ? 'Online' : 'Offline'}
+            <span class="device-status ${deviceState}"></span>
+            ${stateLabel}
         `;
 
         // Engine metrics
