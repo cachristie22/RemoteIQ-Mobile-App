@@ -250,6 +250,10 @@ a:hover {
     pointer-events: none;
 }
 
+.filter-container {
+    margin-bottom: 16px;
+}
+
 /* ===== Login Page ===== */
 .login-page {
     display: flex;

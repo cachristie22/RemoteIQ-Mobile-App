@@ -41,11 +41,19 @@ const App = {
             }
         }
 
-        // Set up search
+        // Set up search and filter
         const searchInput = document.getElementById('searchInput');
-        if (searchInput) {
-            searchInput.addEventListener('input', (e) => this.filterDevices(e.target.value));
-        }
+        const statusFilter = document.getElementById('statusFilter');
+
+        const filterHandler = () => {
+            this.filterDevices(
+                searchInput ? searchInput.value : '',
+                statusFilter ? statusFilter.value : 'all'
+            );
+        };
+
+        if (searchInput) searchInput.addEventListener('input', filterHandler);
+        if (statusFilter) statusFilter.addEventListener('change', filterHandler);
 
         // Load devices
         await this.loadDevices();
@@ -66,6 +74,7 @@ const App = {
         const emptyEl = document.getElementById('emptyState');
         const noResultsEl = document.getElementById('noResults');
         const searchInput = document.getElementById('searchInput');
+        const statusFilter = document.getElementById('statusFilter');
 
         if (!listEl) return;
 
@@ -86,12 +95,11 @@ const App = {
                 return;
             }
 
-            // Apply current search filter if any
-            if (searchInput && searchInput.value) {
-                this.filterDevices(searchInput.value);
-            } else {
-                this.renderDeviceList();
-            }
+            // Apply current filters
+            this.filterDevices(
+                searchInput ? searchInput.value : '',
+                statusFilter ? statusFilter.value : 'all'
+            );
 
         } catch (error) {
             loadingEl.style.display = 'none';
@@ -106,23 +114,26 @@ const App = {
     },
 
     /**
-     * Filter devices by search query
+     * Filter devices by search query and status
      */
-    filterDevices(query) {
+    filterDevices(query, status = 'all') {
         const noResultsEl = document.getElementById('noResults');
         const listEl = document.getElementById('deviceList');
 
         query = query.toLowerCase().trim();
 
-        if (!query) {
-            this.filteredDevices = [...this.devices];
-        } else {
-            this.filteredDevices = this.devices.filter(device => {
-                const name = (device.name || '').toLowerCase();
-                const esn = (device.ESN || '').toLowerCase();
-                return name.includes(query) || esn.includes(query);
-            });
-        }
+        this.filteredDevices = this.devices.filter(device => {
+            // Text Match
+            const name = (device.name || '').toLowerCase();
+            const esn = (device.ESN || '').toLowerCase();
+            const textMatch = !query || name.includes(query) || esn.includes(query);
+
+            // Status Match
+            const deviceState = this.getDeviceState(device);
+            const statusMatch = status === 'all' || deviceState === status;
+
+            return textMatch && statusMatch;
+        });
 
         if (this.filteredDevices.length === 0 && this.devices.length > 0) {
             listEl.innerHTML = '';
