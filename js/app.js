@@ -6,7 +6,7 @@ const App = {
     // Current device data cache
     devices: [],
     currentPage: 0,
-    itemsPerPage: 20,
+    itemsPerPage: 100,
     totalItems: 0,
     isLoading: false,
     currentDevice: null,

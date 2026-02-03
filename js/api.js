@@ -113,7 +113,7 @@ const API = {
      * @param {number} resultsPerPage - Results per page (max 200)
      * @param {string} attribute - Attribute filter ('All' for all attributes)
      */
-    async getDevices(page = 0, resultsPerPage = 20, search = '', attribute = 'All') {
+    async getDevices(page = 0, resultsPerPage = 100, search = '', attribute = 'All') {
         const params = new URLSearchParams({
             page: page.toString(),
             resultsPerPage: resultsPerPage.toString(),
