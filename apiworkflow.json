@@ -1,14 +1,15 @@
 {
-    "_exportDate": "2026-02-03T23:09:29.358Z",
+    "_exportDate": "2026-02-03T21:51:13.588Z",
     "_type": "flow",
     "applicationId": "6254b63150e14fb6deb3aa31",
     "customNodeVersions": [],
     "customNodes": [],
-    "description": "Created for Endpoint GET /api/last_value_query v2",
+    "description": "Created for Endpoint GET /api/last_value_query",
     "enabled": true,
     "flowClass": "experience",
     "globals": [],
-    "name": "GET /api/last_value_query (Search Enabled)",
+    "id": "663e0b33b1ea3e48d7a87cdc",
+    "name": "GET /api/last_value_query",
     "nodes": [
         {
             "config": {
@@ -65,7 +66,7 @@
         {
             "config": {
                 "errorsPath": "working.dataValidationErrors",
-                "schema": "{\r\n  \"type\": \"object\",\r\n  \"required\": [\r\n    \"attribute\"\r\n  ],\r\n  \"properties\": {\r\n    \"attribute\": {\r\n      \"oneOf\": [\r\n        {\r\n          \"type\": \"array\",\r\n          \"items\": {\r\n            \"type\": \"string\"\r\n          }\r\n        },\r\n        {\r\n          \"type\": \"string\"\r\n        }\r\n      ]\r\n    },\r\n    \"page\": {\r\n      \"type\": \"string\"\r\n    },\r\n    \"search\": {\r\n      \"type\": \"string\"\r\n    },\r\n    \"resultsPerPage\": {\r\n      \"type\": \"integer\",\r\n      \"minimum\": 0,\r\n      \"maximum\": 200\r\n    }\r\n  }\r\n}",
+                "schema": "{\r\n  \"type\": \"object\",\r\n  \"required\": [\r\n    \"attribute\"\r\n  ],\r\n  \"properties\": {\r\n    \"attribute\": {\r\n      \"oneOf\": [\r\n        {\r\n          \"type\": \"array\",\r\n          \"items\": {\r\n            \"type\": \"string\"\r\n          }\r\n        },\r\n        {\r\n          \"type\": \"string\"\r\n        }\r\n      ]\r\n    },\r\n    \"page\": {\r\n      \"type\": \"string\"\r\n    },\r\n    \"resultsPerPage\": {\r\n      \"type\": \"integer\",\r\n      \"minimum\": 0,\r\n      \"maximum\": 200\r\n    }\r\n  }\r\n}",
                 "schemaType": "json",
                 "toValidatePath": "data.query"
             },
@@ -83,7 +84,7 @@
                     "ilo4FORqlt"
                 ],
                 [
-                    "SplitSearchConditional"
+                    "RsCDynyYnF"
                 ]
             ],
             "type": "ValidatePayloadNode"
@@ -142,29 +143,6 @@
         },
         {
             "config": {
-                "expression": "{{data.query.search}} != \"\""
-            },
-            "id": "SplitSearchConditional",
-            "meta": {
-                "category": "logic",
-                "description": "",
-                "label": "Has Search?",
-                "name": "conditional",
-                "x": 700,
-                "y": 380
-            },
-            "outputIds": [
-                [
-                    "SearchQueryNode"
-                ],
-                [
-                    "RsCDynyYnF"
-                ]
-            ],
-            "type": "ConditionalNode"
-        },
-        {
-            "config": {
                 "attributesAsObject": false,
                 "findMetadata": true,
                 "findMethod": "experienceGroupId",
@@ -172,7 +150,6 @@
                 "idTemplate": "{{experience.user.experienceGroups.[0].id}}",
                 "includeConnectionStatus": false,
                 "includeState": true,
-                "nameTemplate": "*{{data.query.search}}*",
                 "resultPath": "working.result",
                 "resultsPage": "{{data.query.page}}",
                 "resultsPerPage": "{{data.query.resultsPerPage}}",
@@ -180,45 +157,13 @@
                 "sortField": "name",
                 "tagsAsObject": true
             },
-            "id": "SearchQueryNode",
+            "id": "qZNWxA3ST1",
             "meta": {
                 "category": "data",
                 "description": "",
-                "label": "Device: Get (Scoped Search)",
+                "label": "Device: Get",
                 "name": "get-device",
                 "x": 1040,
-                "y": 480
-            },
-            "outputIds": [
-                [
-                    "9SaAzisSmb"
-                ]
-            ],
-            "type": "GetDeviceNode"
-        },
-        {
-            "config": {
-                "attributesAsObject": false,
-                "findMetadata": true,
-                "findMethod": "experienceGroupId",
-                "findMultiple": true,
-                "idTemplate": "{{experience.user.experienceGroups.[0].id}}",
-                "includeConnectionStatus": false,
-                "includeState": true,
-                "resultPath": "working.result",
-                "resultsPage": "{{data.query.page}}",
-                "resultsPerPage": "{{data.query.resultsPerPage}}",
-                "sortDirection": "asc",
-                "sortField": "name",
-                "tagsAsObject": true
-            },
-            "id": "FastGroupQueryNode",
-            "meta": {
-                "category": "data",
-                "description": "",
-                "label": "Device: Get (Scoped Group)",
-                "name": "get-device",
-                "x": 860,
                 "y": 640
             },
             "outputIds": [
@@ -231,13 +176,13 @@
         {
             "config": {
                 "scopePath": "",
-                "script": "if (!payload.working.result || !payload.working.result.items) {\n  payload.working.result = { items: [], count: 0, totalCount: 0 };\n  return;\n}\n\npayload.working.result.items.forEach(device => {\r\n  delete device._etag;\r\n  delete device.applicationId;\r\n  delete device.attributes;\r\n  delete device.deviceClass;\r\n  delete device.deviceId;\r\n  delete device.id;\r\n  delete device.lastUpdated;\r\n\r\n  if(payload.data.query.simplified == \"\"){\r\n    delete device.description;\r\n    delete device.creationDate;\r\n    delete device.ancestorIds;\r\n    delete device.deviceId;\r\n  }\r\n\r\n  //Add device tag if exist\r\n  if (device.tags[\"ESN\"]){\r\n    device[\"ESN\"] = device.tags[\"ESN\"][0]\r\n  }\r\n\r\n  if (device.tags[\"Unit_Number\"]){\r\n    device[\"Unit_Number\"] = device.tags[\"Unit_Number\"][0]\r\n  }\r\n\r\n  delete device.tags;\r\n})\r\n\r\ndelete payload.working.result.sortDirection\r\ndelete payload.working.result.sortField\r\ndelete payload.working.result.filter\r\ndelete payload.working.result.findMethod"
+                "script": "payload.working.result.items.forEach(device => {\r\n  delete device._etag;\r\n  delete device.applicationId;\r\n  delete device.attributes;\r\n  delete device.deviceClass;\r\n  delete device.id;\r\n  delete device.lastUpdated;\r\n\r\n  if(payload.data.query.simplified == \"\"){\r\n    delete device.description;\r\n    delete device.creationDate;\r\n    delete device.ancestorIds;\r\n    delete device.deviceId;\r\n  }\r\n\r\n  //Add device tag if exist\r\n  if (device.tags[\"ESN\"]){\r\n    device[\"ESN\"] = device.tags[\"ESN\"][0]\r\n  }\r\n\r\n  if (device.tags[\"Unit_Number\"]){\r\n    device[\"Unit_Number\"] = device.tags[\"Unit_Number\"][0]\r\n  }\r\n\r\n  delete device.tags;\r\n})\r\n\r\ndelete payload.working.result.sortDirection\r\ndelete payload.working.result.sortField\r\ndelete payload.working.result.filter\r\ndelete payload.working.result.findMethod"
             },
             "id": "9SaAzisSmb",
             "meta": {
                 "category": "logic",
                 "description": "",
-                "label": "Cleanup (Safe)",
+                "label": "Function",
                 "name": "function",
                 "x": 1040,
                 "y": 740
@@ -278,9 +223,8 @@
                 ],
                 "attributesAsObject": false,
                 "findMetadata": false,
-                "findMethod": "query",
+                "findMethod": "experienceGroupId",
                 "findMultiple": true,
-                "queryTemplate": "{\n  \"experienceGroupIds\": {\n    \"$in\": [\"{{experience.user.experienceGroups.[0].id}}\"]\n  }\n}",
                 "idTemplate": "62dff4cb9173754455183d46",
                 "includeConnectionStatus": true,
                 "includeState": true,
@@ -295,7 +239,7 @@
             "meta": {
                 "category": "data",
                 "description": "",
-                "label": "Device: Get (Scoped)",
+                "label": "Device: Get",
                 "name": "get-device",
                 "x": 240,
                 "y": 120
@@ -333,7 +277,7 @@
                 "findMultiple": false,
                 "includeConnectionStatus": true,
                 "includeState": false,
-                "queryTemplate": "{\n  \"$and\": [\n    {\n      \"experienceGroupIds\": {\n        \"$in\": [\"{{experience.user.experienceGroups.[0].id}}\"]\n      }\n    },\n    {\n      \"attributeName\": {\n        \"$eq\": \"{{data.query.attribute}}\"\n      }\n    }\n  ]\n}",
+                "queryTemplate": "{\n  \"$and\": [\n    {\n      \"attributeName\": {\n        \"$eq\": \"{{data.query.attribute}}\"\n      }\n    }\n  ]\n}",
                 "resultPath": "working.validDevices",
                 "sortDirection": "asc",
                 "sortField": "name",
@@ -343,10 +287,10 @@
             "meta": {
                 "category": "data",
                 "description": "",
-                "label": "Device: Get (Scoped Attr)",
+                "label": "Device: Get",
                 "name": "get-device",
-                "x": 700,
-                "y": 480
+                "x": 760,
+                "y": 360
             },
             "outputIds": [
                 [
@@ -354,6 +298,29 @@
                 ]
             ],
             "type": "GetDeviceNode"
+        },
+        {
+            "config": {
+                "expression": "{{working.validDevices}}"
+            },
+            "id": "MKZbG4O_nd",
+            "meta": {
+                "category": "logic",
+                "description": "",
+                "label": "Valid Attribute",
+                "name": "conditional",
+                "x": 1240,
+                "y": 1080
+            },
+            "outputIds": [
+                [
+                    "UKBRlQgQNV"
+                ],
+                [
+                    "jiPoXXKosd"
+                ]
+            ],
+            "type": "ConditionalNode"
         },
         {
             "config": {
@@ -409,8 +376,38 @@
         },
         {
             "config": {
+                "attributesAsObject": false,
+                "findMetadata": false,
+                "findMethod": "experienceGroupId",
+                "findMultiple": false,
+                "idTemplate": "{{experience.user.experienceGroups.[0].id}}",
+                "includeConnectionStatus": false,
+                "includeState": true,
+                "resultPath": "working.result",
+                "sortDirection": "asc",
+                "sortField": "name",
+                "tagsAsObject": true
+            },
+            "id": "UKBRlQgQNV",
+            "meta": {
+                "category": "data",
+                "description": "",
+                "label": "Device: Get",
+                "name": "get-device",
+                "x": 1160,
+                "y": 1220
+            },
+            "outputIds": [
+                [
+                    "oDu2xCwYY8"
+                ]
+            ],
+            "type": "GetDeviceNode"
+        },
+        {
+            "config": {
                 "scopePath": "",
-                "script": "payload.working.resultArray = [];\r\n\r\npayload.working.resultArray.push(\"All\");\r\n\r\nif (payload.working.result && payload.working.result.attributes) {\n  payload.working.result.attributes.forEach(attribute => {\r\n    payload.working.resultArray.push(attribute.name);\r\n  })\n}\n"
+                "script": "payload.working.resultArray = [];\r\n\r\npayload.working.resultArray.push(\"All\");\r\n\r\npayload.working.result.attributes.forEach(attribute => {\r\n  payload.working.resultArray.push(attribute.name);\r\n})\r\n\r\n/* payload.working.result.attributes.forEach(attribute => {\r\n  delete attribute.attributeTags;\r\n  delete attribute.description;\r\n  delete attribute.dataType;\r\n  delete attribute.contentType;\r\n}) */"
             },
             "id": "oDu2xCwYY8",
             "meta": {
@@ -436,17 +433,17 @@
             "meta": {
                 "category": "logic",
                 "description": "",
-                "label": "All Attrs?",
+                "label": "Conditional",
                 "name": "conditional",
-                "x": 700,
-                "y": 580
+                "x": 760,
+                "y": 480
             },
             "outputIds": [
                 [
-                    "FastGroupQueryNode"
+                    "7kZqcCqhMU"
                 ],
                 [
-                    "7kZqcCqhMU"
+                    "qZNWxA3ST1"
                 ]
             ],
             "type": "ConditionalNode"
@@ -541,7 +538,7 @@
         {
             "config": {
                 "scopePath": "",
-                "script": "if (!payload.working.result || !payload.working.result.items) {\n  payload.working.result = { items: [], count: 0, totalCount: 0 };\n  return;\n}\n\npson.working.result.items.forEach(device => {\r\n  delete device._etag;\r\n  delete device.applicationId;\r\n  delete device.attributes;\r\n  delete device.deviceClass;\r\n  delete device.deviceId;\r\n  delete device.id;\r\n  delete device.lastUpdated;\r\n\r\n  //Add device tag if exist\r\n  if (device.tags[\"ESN\"]){\r\n    device[\"ESN\"] = device.tags[\"ESN\"][0]\r\n  }\r\n\r\n  delete device.tags;\r\n})\r\n\r\ndelete payload.working.result.sortDirection\r\ndelete payload.working.result.sortField\r\ndelete payload.working.result.filter\r\ndelete payload.working.result.findMethod"
+                "script": "payload.working.result.items.forEach(device => {\r\n  delete device._etag;\r\n  delete device.applicationId;\r\n  delete device.attributes;\r\n  delete device.deviceClass;\r\n  delete device.deviceId;\r\n  delete device.id;\r\n  delete device.lastUpdated;\r\n\r\n  //Add device tag if exist\r\n  if (device.tags[\"ESN\"]){\r\n    device[\"ESN\"] = device.tags[\"ESN\"][0]\r\n  }\r\n\r\n  delete device.tags;\r\n})\r\n\r\ndelete payload.working.result.sortDirection\r\ndelete payload.working.result.sortField\r\ndelete payload.working.result.filter\r\ndelete payload.working.result.findMethod"
             },
             "id": "zCjhaUeqyA",
             "meta": {
@@ -563,9 +560,9 @@
             "config": {
                 "attributesAsObject": false,
                 "findMetadata": false,
-                "findMethod": "query",
+                "findMethod": "experienceGroupId",
                 "findMultiple": false,
-                "queryTemplate": "{\n  \"experienceGroupIds\": {\n    \"$in\": [\"{{experience.user.experienceGroups.[0].id}}\"]\n  }\n}",
+                "idTemplate": "{{experience.user.experienceGroups.[0].id}}",
                 "includeConnectionStatus": false,
                 "includeState": true,
                 "resultPath": "working.result",
@@ -577,7 +574,7 @@
             "meta": {
                 "category": "data",
                 "description": "",
-                "label": "Device: Get (Scoped)",
+                "label": "Device: Get",
                 "name": "get-device",
                 "x": 680,
                 "y": 660
@@ -592,7 +589,7 @@
         {
             "config": {
                 "scopePath": "",
-                "script": "//Build list of valid attributes\r\npayload.working.resultArray = [];\r\n\r\npayload.working.resultArray.push(\"All\");\r\n\r\nif (payload.working.result && payload.working.result.attributes) {\n  payload.working.result.attributes.forEach(attribute => {\r\n    payload.working.resultArray.push(attribute.name);\r\n  })\n}\n\r\n//Transform the incoming string into an array\r\nconst arr = payload.data.query.attribute.replace(/[\\[\\]]/g, '').split(',');\r\nlet attrArray= Array.from(arr);\r\npayload.data.query.attributeArray = attrArray;\r\nlet validAttrList = payload.working.resultArray;\r\n\r\n//Validate that attrArray is present in validAttrList\r\nfunction findMissingElements(arr1, arr2) {\r\n  const missingElements = arr1.filter(element => !arr2.includes(element));\r\n  return missingElements;\r\n}\r\n\r\nconst missing = findMissingElements(attrArray, validAttrList);\r\npayload.working.missing = findMissingElements(attrArray, validAttrList);\r\n\r\nif (missing.length === 0) {\r\n  payload.working.validation = true;\r\n} else {\r\n  payload.working.validation = false;\r\n}"
+                "script": "//Build list of valid attributes\r\npayload.working.resultArray = [];\r\n\r\npayload.working.resultArray.push(\"All\");\r\n\r\npayload.working.result.attributes.forEach(attribute => {\r\n  payload.working.resultArray.push(attribute.name);\r\n})\r\n\r\n//Transform the incoming string into an array\r\nconst arr = payload.data.query.attribute.replace(/[\\[\\]]/g, '').split(',');\r\nlet attrArray= Array.from(arr);\r\npayload.data.query.attributeArray = attrArray;\r\nlet validAttrList = payload.working.resultArray;\r\n\r\n//Validate that attrArray is present in validAttrList\r\nfunction findMissingElements(arr1, arr2) {\r\n  const missingElements = arr1.filter(element => !arr2.includes(element));\r\n  return missingElements;\r\n}\r\n\r\nconst missing = findMissingElements(attrArray, validAttrList);\r\npayload.working.missing = findMissingElements(attrArray, validAttrList);\r\n\r\nif (missing.length === 0) {\r\n  payload.working.validation = true;\r\n} else {\r\n  payload.working.validation = false;\r\n}"
             },
             "id": "v1m5HnKbwn",
             "meta": {
@@ -749,7 +746,6 @@
                 "idTemplate": "{{experience.user.experienceGroups.[0].id}}",
                 "includeConnectionStatus": false,
                 "includeState": true,
-                "nameTemplate": "*{{data.query.search}}*",
                 "resultPath": "working.result",
                 "resultsPage": "{{data.query.page}}",
                 "resultsPerPage": "{{data.query.resultsPerPage}}",
@@ -761,7 +757,7 @@
             "meta": {
                 "category": "data",
                 "description": "",
-                "label": "Device: Get (Scoped)",
+                "label": "Device: Get",
                 "name": "get-device",
                 "x": 720,
                 "y": 1040
@@ -776,7 +772,7 @@
         {
             "config": {
                 "scopePath": "",
-                "script": "if (!payload.working.result || !payload.working.result.items) {\n  payload.working.result = { items: [], count: 0, totalCount: 0 };\n  return;\n}\n\npson.working.result.items.forEach(device => {\r\n  delete device._etag;\r\n  delete device.applicationId;\r\n  delete device.attributes;\r\n  delete device.deviceClass;\r\n  delete device.deviceId;\r\n  delete device.id;\r\n  delete device.lastUpdated;\r\n  if(payload.data.query.simplified == \"\"){\r\n    delete device.description;\r\n    delete device.creationDate;\r\n    delete device.ancestorIds;\r\n    delete device.deviceId;\r\n  }\r\n\r\n  //Add device tag if exist\r\n  if (device.tags[\"ESN\"]){\r\n    device[\"ESN\"] = device.tags[\"ESN\"][0]\r\n  }\r\n\r\n  //Add device tag if exist\r\n  if (device.tags[\"Unit_Number\"]){\r\n    device[\"Unit_Number\"] = device.tags[\"Unit_Number\"][0]\r\n  }\r\n\r\n  delete device.tags;\r\n})\r\n\r\ndelete payload.working.result.sortDirection\r\ndelete payload.working.result.sortField\r\ndelete payload.working.result.filter\r\ndelete payload.working.result.findMethod"
+                "script": "payload.working.result.items.forEach(device => {\r\n  delete device._etag;\r\n  delete device.applicationId;\r\n  delete device.attributes;\r\n  delete device.deviceClass;\r\n  delete device.id;\r\n  delete device.lastUpdated;\r\n  if(payload.data.query.simplified == \"\"){\r\n    delete device.description;\r\n    delete device.creationDate;\r\n    delete device.ancestorIds;\r\n    delete device.deviceId;\r\n  }\r\n\r\n  //Add device tag if exist\r\n  if (device.tags[\"ESN\"]){\r\n    device[\"ESN\"] = device.tags[\"ESN\"][0]\r\n  }\r\n\r\n  //Add device tag if exist\r\n  if (device.tags[\"Unit_Number\"]){\r\n    device[\"Unit_Number\"] = device.tags[\"Unit_Number\"][0]\r\n  }\r\n\r\n  delete device.tags;\r\n})\r\n\r\ndelete payload.working.result.sortDirection\r\ndelete payload.working.result.sortField\r\ndelete payload.working.result.filter\r\ndelete payload.working.result.findMethod"
             },
             "id": "Yx7n446XnD",
             "meta": {
@@ -798,11 +794,11 @@
     "triggers": [
         {
             "config": {},
-            "key": "69827b4a4c70ff8db20a3545",
+            "key": "663e0b32b1ea3e48d7a87cda",
             "meta": {
                 "category": "trigger",
                 "description": "",
-                "label": "GET /api/v2/last_value_query",
+                "label": "GET /api/last_value_query",
                 "name": "endpoint",
                 "uiId": "G0V4adTvjm",
                 "x": 640,
@@ -817,7 +813,7 @@
         },
         {
             "config": {},
-            "key": "6982752b4375a607922972fd-_gJqGVm5277JzBGpgj2os",
+            "key": "663e0b33b1ea3e48d7a87cdc-ZVRou_o9KrzqBBXE5WNLa",
             "meta": {
                 "category": "trigger",
                 "description": "",
