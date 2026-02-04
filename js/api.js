@@ -122,6 +122,9 @@ const API = {
 
         if (search) {
             params.append('search', search);
+            console.log(`[DEBUG] Search parameter added: "${search}"`);
+        } else {
+            console.log('[DEBUG] No search parameter');
         }
 
         // Use V2 endpoint
