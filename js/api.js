@@ -124,9 +124,9 @@ const API = {
             params.append('search', search);
         }
 
-        // Use original endpoint (reference workflow)
-        console.log(`Fetching devices: ${this.BASE_URL}/api/last_value_query?${params}`);
-        const data = await this.request(`/api/last_value_query?${params}`);
+        // Use V2 endpoint
+        console.log(`Fetching devices: ${this.BASE_URL}/api/v2/last_value_query?${params}`);
+        const data = await this.request(`/api/v2/last_value_query?${params}`);
         return data.result || { items: [], count: 0 };
     },
 
