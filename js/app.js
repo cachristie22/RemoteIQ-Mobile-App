@@ -192,7 +192,9 @@ const App = {
     renderDeviceList(items = null) {
         const listEl = document.getElementById('deviceList');
         const statusFilter = document.getElementById('statusFilter');
+        const searchInput = document.getElementById('searchInput');
         const filterValue = statusFilter ? statusFilter.value : 'all';
+        const searchQuery = searchInput ? searchInput.value.toLowerCase().trim() : '';
 
         // If not appending, clear list
         if (!items) {
@@ -203,6 +205,22 @@ const App = {
         let visibleCount = 0;
 
         items.forEach((device, index) => {
+            // Apply client-side text search filter (fallback for server-side filtering)
+            if (searchQuery) {
+                const name = (device.name || '').toLowerCase();
+                const esn = (device.ESN || '').toLowerCase();
+                const unitNumber = (device.Unit_Number || '').toLowerCase();
+
+                // Check if any field contains the search query
+                const matchesSearch = name.includes(searchQuery) ||
+                    esn.includes(searchQuery) ||
+                    unitNumber.includes(searchQuery);
+
+                if (!matchesSearch) {
+                    return; // Skip this device
+                }
+            }
+
             // Apply client-side status filter
             const deviceState = this.getDeviceState(device);
             if (filterValue !== 'all' && deviceState !== filterValue) {
@@ -217,13 +235,29 @@ const App = {
         // Show/Hide no results if filter hides everything
         const noResultsEl = document.getElementById('noResults');
         if (noResultsEl) {
-            // Only show 'No Results' if we have loaded devices but none match the status filter
+            // Only show 'No Results' if we have loaded devices but none match the filters
             // AND we are doing a full render (items == this.devices)
             if (this.devices.length > 0 && items === this.devices && visibleCount === 0) {
                 noResultsEl.style.display = 'block';
-                noResultsEl.textContent = 'No devices match the selected filter.';
+                if (searchQuery && filterValue !== 'all') {
+                    noResultsEl.textContent = 'No devices match the search and status filter.';
+                } else if (searchQuery) {
+                    noResultsEl.textContent = `No devices match "${searchInput.value}".`;
+                } else {
+                    noResultsEl.textContent = 'No devices match the selected filter.';
+                }
             } else if (this.devices.length > 0) {
                 noResultsEl.style.display = 'none';
+            }
+        }
+
+        // Update visible count display
+        const countEl = document.getElementById('deviceCount');
+        if (countEl && items === this.devices) {
+            if (visibleCount < this.devices.length) {
+                countEl.textContent = `(${visibleCount} of ${this.devices.length})`;
+            } else {
+                countEl.textContent = `(${this.devices.length}${this.totalItems > this.devices.length ? '+' : ''})`;
             }
         }
     },
