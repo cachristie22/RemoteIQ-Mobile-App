@@ -365,7 +365,10 @@ const App = {
         this.setMetricValue('engineSpeed', state.Engine_Speed?.value, 'RPM');
         this.setMetricValue('engineHours', state.Engine_Hours?.value?.toFixed(1), 'hrs');
         this.setMetricValue('engineTemp', state.Engine_Temperature?.value, '°F');
-        this.setMetricValue('oilPressure', state.Engine_Oil_Pressure?.value, 'kPa');
+        // Convert oil pressure from kPa to PSI (1 kPa = 0.145038 PSI)
+        const oilPressureKpa = state.Engine_Oil_Pressure?.value;
+        const oilPressurePsi = oilPressureKpa ? (oilPressureKpa * 0.145038).toFixed(1) : null;
+        this.setMetricValue('oilPressure', oilPressurePsi, 'PSI');
 
         // Power metrics
         this.setMetricValue('batteryVoltage', state.Battery_Voltage?.value?.toFixed(1), 'V');
@@ -384,9 +387,10 @@ const App = {
             locationEl.textContent = 'N/A';
         }
 
-        // Cell signal
+        // Cell signal - visual bars with color coding
         const cellBar = state.Cell_Bar_Icon?.value || 0;
-        document.getElementById('cellSignal').textContent = `${cellBar}/6 bars`;
+        const cellSignalEl = document.getElementById('cellSignal');
+        cellSignalEl.innerHTML = this.renderSignalBars(cellBar);
 
         // Last update
         const lastUpdate = state.ConnectionState?.time;
@@ -408,6 +412,37 @@ const App = {
                 el.textContent = 'N/A';
             }
         }
+    },
+
+    /**
+     * Render cell signal bars with color coding
+     * 1 bar: red, 2-3 bars: yellow, 4-6 bars: green
+     * @param {number} bars - Number of bars (0-6)
+     * @returns {string} HTML for signal bars
+     */
+    renderSignalBars(bars) {
+        const totalBars = 6;
+        const activeCount = Math.min(Math.max(0, Math.floor(bars)), totalBars);
+
+        // Determine color based on signal strength
+        let color;
+        if (activeCount <= 1) {
+            color = 'var(--danger)'; // Red
+        } else if (activeCount <= 3) {
+            color = 'var(--warning)'; // Yellow
+        } else {
+            color = 'var(--success)'; // Green
+        }
+
+        let html = '<div class="signal-bars">';
+        for (let i = 0; i < totalBars; i++) {
+            const isActive = i < activeCount;
+            const barHeight = 8 + (i * 4); // Increasing height: 8, 12, 16, 20, 24, 28
+            html += `<div class="signal-bar ${isActive ? 'active' : ''}" style="height: ${barHeight}px; ${isActive ? `background: ${color};` : ''}"></div>`;
+        }
+        html += '</div>';
+
+        return html;
     },
 
     /**

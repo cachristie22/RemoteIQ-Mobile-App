@@ -575,6 +575,22 @@ a:hover {
     animation: fadeIn 0.3s ease forwards;
 }
 
+/* ===== Signal Bars ===== */
+.signal-bars {
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    gap: 3px;
+    height: 32px;
+}
+
+.signal-bar {
+    width: 6px;
+    background: var(--border);
+    border-radius: 2px;
+    transition: background 0.2s ease;
+}
+
 /* ===== Responsive ===== */
 @media (max-width: 360px) {
     .login-card {
